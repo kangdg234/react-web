@@ -22,12 +22,21 @@ export function LoginForm() {
     setIsLoading(true)
     setError("")
 
-    // 간단한 인증 로직 (실제 환경에서는 서버 인증 필요)
-    if (username === "admin" && password === "admin123") {
-      localStorage.setItem("isAuthenticated", "true")
-      router.push("/dashboard")
-    } else {
-      setError("아이디 또는 비밀번호가 올바르지 않습니다.")
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      })
+      if (res.ok) {
+        localStorage.setItem("isAuthenticated", "true")
+        router.push("/dashboard")
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error || "아이디 또는 비밀번호가 올바르지 않습니다.")
+      }
+    } catch (err) {
+      setError("서버와 통신할 수 없습니다.")
     }
 
     setIsLoading(false)
